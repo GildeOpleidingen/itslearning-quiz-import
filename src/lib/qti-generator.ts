@@ -1,14 +1,23 @@
 import JSZip from "jszip";
-import type { CorrectAnswer, CsvRow } from "./csv-parser";
+import { CorrectAnswer, type CsvRow } from "./csv-parser";
+
+export type ChoiceId = "A0" | "A1" | "A2" | "A3";
+
+type AnswerField = "antwoordA" | "antwoordB" | "antwoordC" | "antwoordD";
 
 const WRONG_PENALTY = "-0.33333333333333331";
-const CHOICE_MAP: Record<CorrectAnswer, string> = {
+const CHOICE_MAP: Record<CorrectAnswer, ChoiceId> = {
   A: "A0",
   B: "A1",
   C: "A2",
   D: "A3",
 };
-const ALL_CHOICES = ["A0", "A1", "A2", "A3"];
+const ANSWER_FIELDS: Record<CorrectAnswer, AnswerField> = {
+  A: "antwoordA",
+  B: "antwoordB",
+  C: "antwoordC",
+  D: "antwoordD",
+};
 
 function escapeHtml(text: string): string {
   return text
@@ -20,11 +29,11 @@ function escapeHtml(text: string): string {
 
 function generateItemXml(itemId: number, row: CsvRow): string {
   const correctId = CHOICE_MAP[row.juist];
-  const options = [row.antwoordA, row.antwoordB, row.antwoordC, row.antwoordD];
 
   // Build mapping: correct first, then wrong in A0-A3 order
   let mapEntries = `        <mapEntry mapKey="${correctId}" mappedValue="1" />`;
-  for (const cid of ALL_CHOICES) {
+  for (const answer of Object.values(CorrectAnswer)) {
+    const cid = CHOICE_MAP[answer];
     if (cid !== correctId) {
       mapEntries += `        <mapEntry mapKey="${cid}" mappedValue="${WRONG_PENALTY}" />`;
     }
@@ -32,9 +41,9 @@ function generateItemXml(itemId: number, row: CsvRow): string {
 
   // Build choices
   let choices = "";
-  for (let i = 0; i < ALL_CHOICES.length; i++) {
-    const cid = ALL_CHOICES[i]!;
-    const escaped = escapeHtml(options[i]!);
+  for (const answer of Object.values(CorrectAnswer)) {
+    const cid = CHOICE_MAP[answer];
+    const escaped = escapeHtml(row[ANSWER_FIELDS[answer]]);
     choices +=
       `        <simpleChoice fixed="false" showHide="show" identifier="${cid}">` +
       `          <div class="htmlContent"><![CDATA[<p>${escaped}</p>  ]]></div>` +
@@ -127,10 +136,10 @@ export async function generateQtiZip(rows: CsvRow[]): Promise<Blob> {
   const zip = new JSZip();
 
   const itemIds: number[] = [];
-  for (let i = 0; i < rows.length; i++) {
+  for (const [i, row] of rows.entries()) {
     const itemId = i + 1;
     itemIds.push(itemId);
-    zip.file(`item${itemId}.xml`, generateItemXml(itemId, rows[i]!));
+    zip.file(`item${itemId}.xml`, generateItemXml(itemId, row));
   }
 
   zip.file("imsmanifest.xml", generateManifestXml(itemIds));

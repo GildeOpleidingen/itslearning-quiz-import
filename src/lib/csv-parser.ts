@@ -23,7 +23,7 @@ const REQUIRED_HEADERS = [
   "Antwoord C",
   "Antwoord D",
   "Juist",
-];
+] as const;
 
 function isCorrectAnswer(value: string): value is CorrectAnswer {
   return Object.values(CorrectAnswer).includes(value as CorrectAnswer);
