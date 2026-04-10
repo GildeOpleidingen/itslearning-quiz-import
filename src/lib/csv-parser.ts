@@ -1,3 +1,10 @@
+export enum CorrectAnswer {
+  A = "A",
+  B = "B",
+  C = "C",
+  D = "D",
+}
+
 export interface CsvRow {
   volgnummer: string;
   vraag: string;
@@ -5,7 +12,7 @@ export interface CsvRow {
   antwoordB: string;
   antwoordC: string;
   antwoordD: string;
-  juist: string;
+  juist: CorrectAnswer;
 }
 
 const REQUIRED_HEADERS = [
@@ -17,6 +24,10 @@ const REQUIRED_HEADERS = [
   "Antwoord D",
   "Juist",
 ];
+
+function isCorrectAnswer(value: string): value is CorrectAnswer {
+  return Object.values(CorrectAnswer).includes(value as CorrectAnswer);
+}
 
 export function parseCsv(text: string): CsvRow[] {
   const lines = text.split(/\r?\n/).filter((line) => line.trim() !== "");
@@ -52,7 +63,7 @@ export function parseCsv(text: string): CsvRow[] {
     const cols = lines[i]!.split(sep).map((c) => c.trim());
 
     const juist = (cols[colIndex.juist] ?? "").toUpperCase();
-    if (!["A", "B", "C", "D"].includes(juist)) {
+    if (!isCorrectAnswer(juist)) {
       throw new Error(
         `Rij ${i + 1}: ongeldige waarde "${cols[colIndex.juist]}" in kolom "Juist". Gebruik A, B, C of D.`
       );

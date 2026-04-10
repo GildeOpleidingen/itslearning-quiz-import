@@ -1,8 +1,8 @@
 import JSZip from "jszip";
-import type { CsvRow } from "./csv-parser";
+import type { CorrectAnswer, CsvRow } from "./csv-parser";
 
 const WRONG_PENALTY = "-0.33333333333333331";
-const CHOICE_MAP: Record<string, string> = {
+const CHOICE_MAP: Record<CorrectAnswer, string> = {
   A: "A0",
   B: "A1",
   C: "A2",
@@ -19,7 +19,7 @@ function escapeHtml(text: string): string {
 }
 
 function generateItemXml(itemId: number, row: CsvRow): string {
-  const correctId = CHOICE_MAP[row.juist]!;
+  const correctId = CHOICE_MAP[row.juist];
   const options = [row.antwoordA, row.antwoordB, row.antwoordC, row.antwoordD];
 
   // Build mapping: correct first, then wrong in A0-A3 order
