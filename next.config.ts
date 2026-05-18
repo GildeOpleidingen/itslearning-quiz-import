@@ -1,8 +1,12 @@
 import type { NextConfig } from "next";
 
+const isProd = process.env.NODE_ENV === "production";
+const repoName = "itslearning-quiz-import";
+
 const nextConfig: NextConfig = {
   output: "export",
-  assetPrefix: "./",
+  basePath: isProd ? `/${repoName}` : "",
+  images: { unoptimized: true },
 };
 
 export default nextConfig;
